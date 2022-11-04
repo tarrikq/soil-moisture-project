@@ -1,0 +1,279 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "305858db-b44c-4b0f-9b21-6298d5c4f73a",
+   "metadata": {},
+   "source": [
+    "# Google Earth Engine data pull\n",
+    "this code requires funtion inputs (see function inputs section)\n",
+    "You must install the google earth engine API and authenticate it to use\n",
+    "for GEE python api install see https://developers.google.com/earth-engine/guides/python_install\n",
+    "\n",
+    "\n",
+    "\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "c9e92695-af22-4d25-9bcd-849d2cf9db0d",
+   "metadata": {},
+   "source": [
+    "## importing libraries\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "id": "cf845374-6572-4903-9bf9-83485c5b9544",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import ee\n",
+    "import pandas as pd"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "49942b7b-8bc2-452b-b531-c7165a4b529d",
+   "metadata": {},
+   "source": [
+    "## Initialize the Earth engine API\n",
+    "This will try to initialize the API. If it fails, run the authenticate function in the next section. Otherwise skip the authenticate section"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "8d5d58fb-3c3d-4496-823e-d590a520ee3d",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "The Earth Engine package failed to initialize!\n"
+     ]
+    }
+   ],
+   "source": [
+    "try:\n",
+    "  ee.Initialize()\n",
+    "  print('The Earth Engine package initialized successfully!')\n",
+    "except ee.EEException as e:\n",
+    "  print('The Earth Engine package failed to initialize!')\n",
+    "except:\n",
+    "    print(\"Unexpected error:\", sys.exc_info()[0])\n",
+    "    raise"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "59565405-c8b7-4a4f-a741-a5ab2d5e6319",
+   "metadata": {},
+   "source": [
+    "## Authenticate credentials\n",
+    "Only use if the previous initialization failed. This step in the setup authenticates your credentials then initializes the API."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "2690cf6e-9186-4d50-88b0-4ff759ec6ade",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Couldn't find program: 'bash'\n"
+     ]
+    }
+   ],
+   "source": [
+    "ee.Authenticate()\n",
+    "ee.Initialize()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "91cb0210-a5e8-47c5-8e8e-d79412ab1d2c",
+   "metadata": {},
+   "source": [
+    "## Function input\n",
+    "Update the date range of date to pull, longitude and latitude, scale, and the directory for the soil moisture and precipitation data.\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "72fced79-0db7-4e70-9875-d9be58d03319",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "##These are the inputs for the function. The function requires all of them.\n",
+    "start_date = '2021-04-01'   ##Start of date range\n",
+    "end_date = '2021-04-10'     ##end of date range\n",
+    "longitude = -83.093234      ##Update with longitude of location\n",
+    "latitude = 42.28691         ##Update with latitude of location\n",
+    "scale = 10                  ##The scale in meters. Does not make a difference if only taking one point\n",
+    "dir_soil = r'C:\\Users\\Tarri\\jupyter_projects\\soil_moisture_pull\\data\\soil.csv'              ##Make sure to update this with your directory and file name\n",
+    "dir_prec = r'C:\\Users\\Tarri\\jupyter_projects\\soil_moisture_pull\\data\\prec.csv'              ##EX) r'C:\\Users\\User\\Documents\\fileName\\pythonCode\\'Test.csv'\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "547d08b8-f91c-4524-89e2-43e2d1419eb2",
+   "metadata": {},
+   "source": [
+    "## Function\n",
+    "This function will import the image collection for soil moisture, and precipitation from Google Earth Engine. \n",
+    "The appropriate bands will then be selected from both image collections, and the location of interest will be applied.\n",
+    "The mean of each data set is printed as a check.\n",
+    "The data from the location will be pulled from the image and cleaned in the ee_array_to_df function.\n",
+    "the cleaned dataframes are then saved out to csv files to the chosen directories."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "2514c203-39a5-4567-8d8c-a2cdee2ee20d",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def data_pull(i_date, f_date, long, lat, scale, dir_soil, dir_prec):\n",
+    "\n",
+    "        #Import the Image collection data\n",
+    "    Soil_Moisture = ee.ImageCollection('NASA_USDA/HSL/SMAP10KM_soil_moisture')\n",
+    "    Precipitation = ee.ImageCollection('JAXA/GPM_L3/GSMaP/v6/operational')\n",
+    "\n",
+    "\n",
+    "        # Selection of appropriate bands and dates from each image collection.\n",
+    "    Surf_Soil_Moisture = Soil_Moisture.select('ssm').filterDate(i_date, f_date)                 ##surface moisture\n",
+    "    Sub_Soil_Moisture = Soil_Moisture.select('susm').filterDate(i_date, f_date)                 ##sub surface moisture\n",
+    "    Per_Soil_Moisture = Soil_Moisture.select('smp').filterDate(i_date, f_date)                  ##percent moisture\n",
+    "    hourly_Prec = Precipitation.select('hourlyPrecipRate').filterDate(i_date, f_date)           ##satellite precipitation\n",
+    "    hourly_Prec_gage = Precipitation.select('hourlyPrecipRateGC').filterDate(i_date, f_date)    ##gage corrected precipitation\n",
+    "\n",
+    "        ##Defining the location of interest\n",
+    "    poi = ee.Geometry.Point(long, lat)\n",
+    "\n",
+    "        #This section calculates and prints the mean value of the soil moisture collection at the point.\n",
+    "        #Can use to check if the correct bands have been chose by seeing the data.\n",
+    "        ##Only serves as a check, do not need section otherwise.\n",
+    "    surf_soil_mois_point = Surf_Soil_Moisture.mean().sample(poi, scale).first().get('ssm').getInfo()\n",
+    "    sub_soil_mois_point = Sub_Soil_Moisture.mean().sample(poi, scale).first().get('susm').getInfo()\n",
+    "    per_soil_mois_point = Per_Soil_Moisture.mean().sample(poi, scale).first().get('smp').getInfo()\n",
+    "    hourly_Prec_point = hourly_Prec.mean().sample(poi, scale).first().get('hourlyPrecipRate').getInfo()\n",
+    "    hourly_Prec_gage_point = hourly_Prec_gage.mean().sample(poi, scale).first().get('hourlyPrecipRateGC').getInfo()\n",
+    "    print('Average surface soil moisture at point:', surf_soil_mois_point, 'mm')\n",
+    "    print('Average subsurface soil moisture at point:', sub_soil_mois_point, 'mm')\n",
+    "    print('Average percent surface soil moisture at point:', per_soil_mois_point, '%')\n",
+    "    print('Average hourly precipitation rate at point:', hourly_Prec_point, 'mm/hr')\n",
+    "    print('Average hourly gage precipitation rate at point:', hourly_Prec_gage_point, 'mm/hr')\n",
+    "\n",
+    "        #Get the data for the pixel intersecting the location of interest using the defined scale.\n",
+    "    surf_soil_mois_lst = Surf_Soil_Moisture.getRegion(poi, scale).getInfo()\n",
+    "    sub_soil_mois_lst = Sub_Soil_Moisture.getRegion(poi, scale).getInfo()\n",
+    "    per_soil_mois_lst = Per_Soil_Moisture.getRegion(poi, scale).getInfo()\n",
+    "    hourly_Prec_lst = hourly_Prec.getRegion(poi, scale).getInfo()\n",
+    "    hourly_Prec_gage_lst = hourly_Prec_gage.getRegion(poi, scale).getInfo()\n",
+    "\n",
+    "        ##Sets up the dataframe\n",
+    "    def ee_array_to_df(arr, list_of_bands):\n",
+    "            #Transforms ee.Image.getRegion array to pandas.DataFrame.\n",
+    "        df = pd.DataFrame(arr)\n",
+    "\n",
+    "            # Rearranges the header.\n",
+    "        headers = df.iloc[0]\n",
+    "        df = pd.DataFrame(df.values[1:], columns=headers)\n",
+    "\n",
+    "            # Remove rows without data inside.\n",
+    "        df = df[['longitude', 'latitude', 'time', *list_of_bands]].dropna()\n",
+    "\n",
+    "            # Convert the data to numeric values.\n",
+    "        for band in list_of_bands:\n",
+    "            df[band] = pd.to_numeric(df[band], errors='coerce')\n",
+    "\n",
+    "            # Convert the time field into a datetime.\n",
+    "        df['datetime'] = pd.to_datetime(df['time'], unit='ms')\n",
+    "\n",
+    "            # Keep the columns of interest.\n",
+    "        df = df[['datetime', *list_of_bands]]\n",
+    "\n",
+    "        return df\n",
+    "\n",
+    "        ##Sending data to the function to create datraframes\n",
+    "    surf_soil_mois_df = ee_array_to_df(surf_soil_mois_lst, ['ssm'])\n",
+    "    sub_soil_mois_df = ee_array_to_df(sub_soil_mois_lst, ['susm'])\n",
+    "    per_soil_mois_df = ee_array_to_df(per_soil_mois_lst, ['smp'])\n",
+    "    hourly_Prec_df = ee_array_to_df(hourly_Prec_lst, ['hourlyPrecipRate'])\n",
+    "    hourly_Prec_gage_df = ee_array_to_df(hourly_Prec_gage_lst, ['hourlyPrecipRateGC'])\n",
+    "\n",
+    "        ##combining dataframes of similiar data.\n",
+    "    Soil_mois_Df = pd.merge(surf_soil_mois_df, sub_soil_mois_df, how='inner', on='datetime')\n",
+    "    Soil_mois_Df = pd.merge(Soil_mois_Df, per_soil_mois_df, how='inner', on='datetime')\n",
+    "    Prec_Df = pd.merge(hourly_Prec_df, hourly_Prec_gage_df, how='inner', on='datetime')\n",
+    "\n",
+    "        #Saves out .CSV files for new data being pulled\n",
+    "    Soil_mois_Df.to_csv(dir_soil)\n",
+    "    Prec_Df.to_csv(dir_prec)\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "46147b5a-b91f-4d27-a87b-a06c97707d3d",
+   "metadata": {},
+   "source": [
+    "## Function call"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "id": "4e9671f5-370b-40cf-9ee6-7395f4fe0671",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Average surface soil moisture at point: 20.809528350830078 mm\n",
+      "Average subsurface soil moisture at point: 76.7228775024414 mm\n",
+      "Average percent surface soil moisture at point: 0.8631186485290527 %\n",
+      "Average hourly precipitation rate at point: 0.059270016849040985 mm/hr\n",
+      "Average hourly gage precipitation rate at point: 0.04585568979382515 mm/hr\n"
+     ]
+    }
+   ],
+   "source": [
+    "data_pull(i_date=start_date, f_date=end_date, long=longitude,lat=latitude, scale=scale, dir_soil=dir_soil, dir_prec=dir_prec)"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.9.12"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
