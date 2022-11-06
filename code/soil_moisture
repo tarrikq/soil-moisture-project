@@ -25,7 +25,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 13,
+   "execution_count": 1,
    "id": "cf845374-6572-4903-9bf9-83485c5b9544",
    "metadata": {},
    "outputs": [],
@@ -40,12 +40,12 @@
    "metadata": {},
    "source": [
     "## Initialize the Earth engine API\n",
-    "This will try to initialize the API. If it fails, run the authenticate function in the next section. Otherwise skip the authenticate section"
+    "This will try to initialize the API. If it fails, run the authenticate function in the next section. Otherwise skip the authenticate section."
    ]
   },
   {
    "cell_type": "code",
-   "execution_count": 6,
+   "execution_count": 2,
    "id": "8d5d58fb-3c3d-4496-823e-d590a520ee3d",
    "metadata": {},
    "outputs": [
@@ -53,7 +53,7 @@
      "name": "stdout",
      "output_type": "stream",
      "text": [
-      "The Earth Engine package failed to initialize!\n"
+      "The Earth Engine package initialized successfully!\n"
      ]
     }
    ],
@@ -108,19 +108,19 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 9,
+   "execution_count": 8,
    "id": "72fced79-0db7-4e70-9875-d9be58d03319",
    "metadata": {},
    "outputs": [],
    "source": [
     "##These are the inputs for the function. The function requires all of them.\n",
-    "start_date = '2021-04-01'   ##Start of date range\n",
-    "end_date = '2021-04-10'     ##end of date range\n",
+    "start_date = '2021-03-01'   ##Start of date range\n",
+    "end_date = '2021-04-30'     ##end of date range\n",
     "longitude = -83.093234      ##Update with longitude of location\n",
     "latitude = 42.28691         ##Update with latitude of location\n",
     "scale = 10                  ##The scale in meters. Does not make a difference if only taking one point\n",
-    "dir_soil = r'C:\\Users\\Tarri\\jupyter_projects\\soil_moisture_pull\\data\\soil.csv'              ##Make sure to update this with your directory and file name\n",
-    "dir_prec = r'C:\\Users\\Tarri\\jupyter_projects\\soil_moisture_pull\\data\\prec.csv'              ##EX) r'C:\\Users\\User\\Documents\\fileName\\pythonCode\\'Test.csv'\n",
+    "dir_soil = r'C:\\Users\\Tarri\\jupyter_projects\\soil_moisture_pull\\data\\soil_test.csv'              ##Make sure to update this with your directory and file name\n",
+    "dir_prec = r'C:\\Users\\Tarri\\jupyter_projects\\soil_moisture_pull\\data\\prec_test.csv'              ##EX) r'C:\\Users\\User\\Documents\\fileName\\pythonCode\\'Test.csv'\n",
     "\n"
    ]
   },
@@ -139,7 +139,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 10,
+   "execution_count": 9,
    "id": "2514c203-39a5-4567-8d8c-a2cdee2ee20d",
    "metadata": {},
    "outputs": [],
@@ -234,7 +234,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 14,
+   "execution_count": 10,
    "id": "4e9671f5-370b-40cf-9ee6-7395f4fe0671",
    "metadata": {},
    "outputs": [
@@ -242,11 +242,11 @@
      "name": "stdout",
      "output_type": "stream",
      "text": [
-      "Average surface soil moisture at point: 20.809528350830078 mm\n",
-      "Average subsurface soil moisture at point: 76.7228775024414 mm\n",
-      "Average percent surface soil moisture at point: 0.8631186485290527 %\n",
-      "Average hourly precipitation rate at point: 0.059270016849040985 mm/hr\n",
-      "Average hourly gage precipitation rate at point: 0.04585568979382515 mm/hr\n"
+      "Average surface soil moisture at point: 20.487709045410156 mm\n",
+      "Average subsurface soil moisture at point: 75.76032257080078 mm\n",
+      "Average percent surface soil moisture at point: 0.8517524600028992 %\n",
+      "Average hourly precipitation rate at point: 0.044553112238645554 mm/hr\n",
+      "Average hourly gage precipitation rate at point: 0.05755862221121788 mm/hr\n"
      ]
     }
    ],
